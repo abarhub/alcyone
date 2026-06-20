@@ -1,0 +1,20 @@
+{"@timestamp":"2026-06-20T09:00:00.100Z","level":"INFO","logger":"api.gateway","message":"Demarrage de la passerelle API","thread":"main"}
+{"@timestamp":"2026-06-20T09:00:01.250Z","level":"INFO","logger":"api.gateway","message":"Routes chargees : 14","thread":"main"}
+{"@timestamp":"2026-06-20T09:01:10.300Z","level":"DEBUG","logger":"api.auth","message":"Verification du jeton JWT pour user=alice","thread":"exec-1"}
+{"@timestamp":"2026-06-20T09:01:10.420Z","level":"INFO","logger":"api.auth","message":"Authentification reussie pour user=alice","thread":"exec-1"}
+{"@timestamp":"2026-06-20T09:02:33.000Z","level":"WARN","logger":"api.ratelimit","message":"Quota proche de la limite pour client=mobile-app (920/1000)","thread":"exec-2"}
+{"@timestamp":"2026-06-20T09:03:45.610Z","level":"ERROR","logger":"api.orders","message":"Connection timeout lors de l'appel au service paiement","thread":"exec-3","status":504}
+{"@timestamp":"2026-06-20T09:03:46.700Z","level":"INFO","logger":"api.orders","message":"Nouvelle tentative d'appel au service paiement (1/3)","thread":"exec-3"}
+{"@timestamp":"2026-06-20T09:03:49.120Z","level":"INFO","logger":"api.orders","message":"Appel au service paiement reussi","thread":"exec-3","status":200}
+{"@timestamp":"2026-06-20T09:05:00.000Z","level":"DEBUG","logger":"api.health","message":"Health check OK","thread":"scheduler"}
+{"@timestamp":"2026-06-20T09:06:12.330Z","level":"INFO","logger":"api.users","message":"Creation utilisateur user=carol","thread":"exec-4"}
+{"@timestamp":"2026-06-20T09:07:55.900Z","level":"WARN","logger":"api.auth","message":"Echec d'authentification pour user=bob : identifiants invalides","thread":"exec-5"}
+{"@timestamp":"2026-06-20T09:09:20.140Z","level":"ERROR","logger":"api.db","message":"Pool de connexions sature (max=20)","thread":"exec-6"}
+{"@timestamp":"2026-06-20T09:10:01.000Z","level":"INFO","logger":"api.gateway","message":"Rechargement de la configuration","thread":"main"}
+{"@timestamp":"2026-06-20T09:12:44.510Z","level":"DEBUG","logger":"api.orders","message":"Commande 10456 validee","thread":"exec-7"}
+{"@timestamp":"2026-06-20T09:14:33.220Z","level":"INFO","logger":"api.orders","message":"Commande 10456 expediee","thread":"exec-7"}
+{"@timestamp":"2026-06-20T09:16:00.880Z","level":"WARN","logger":"api.cache","message":"Cache miss eleve sur la cle produits (62%)","thread":"exec-8"}
+{"@timestamp":"2026-06-20T09:18:25.300Z","level":"INFO","logger":"api.auth","message":"Deconnexion user=alice","thread":"exec-1"}
+{"@timestamp":"2026-06-20T09:20:10.000Z","level":"DEBUG","logger":"api.health","message":"Health check OK","thread":"scheduler"}
+{"@timestamp":"2026-06-20T09:22:48.770Z","level":"ERROR","logger":"api.orders","message":"Stock insuffisant pour le produit SKU-8842","thread":"exec-9","status":409}
+{"@timestamp":"2026-06-20T09:25:33.400Z","level":"INFO","logger":"api.gateway","message":"Arret propre demande","thread":"main"}

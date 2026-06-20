@@ -1,3 +1,26 @@
 spring:
   application:
     name: alcyone
+  # Base H2 en mémoire (présente via les dépendances JPA) ; non utilisée pour la lecture des logs.
+  datasource:
+    url: jdbc:h2:mem:alcyone;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+# Configuration du module de logs : liste des fichiers exposés.
+alcyone:
+  logs:
+    default-page-size: 100
+    max-page-size: 1000
+    sources:
+      - name: app-text
+        path: sample-logs/app.log
+        format: TEXT
+      - name: api-json
+        path: sample-logs/api.jsonl
+        format: JSON
+        timestamp-field: "@timestamp"
+        message-field: message
+        level-field: level
