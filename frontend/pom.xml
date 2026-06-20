@@ -36,6 +36,14 @@
 				<directory>dist/alcyone/browser</directory>
 				<targetPath>META-INF/resources</targetPath>
 			</resource>
+			<!-- SBOM CycloneDX des dependances npm, embarque dans le jar (non expose via le web). -->
+			<resource>
+				<directory>dist</directory>
+				<includes>
+					<include>npm.cdx.json</include>
+				</includes>
+				<targetPath>META-INF/sbom</targetPath>
+			</resource>
 		</resources>
 		<plugins>
 			<plugin>
@@ -73,6 +81,17 @@
                         <phase>generate-resources</phase>
                         <configuration>
                             <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>npm-sbom</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>run sbom</arguments>
                         </configuration>
                     </execution>
 
