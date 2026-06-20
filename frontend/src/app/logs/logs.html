@@ -16,13 +16,13 @@
 
     <label class="field field--grow">
       <span class="field__label">Recherche</span>
-      <input
-        type="search"
-        class="field__control"
-        placeholder="Filtrer les logs (texte contenu)…"
+      <textarea
+        class="field__control field__control--area"
+        rows="3"
+        placeholder="Filtrer les logs — un critère par ligne (tous doivent correspondre)…"
         [value]="search()"
         (input)="onSearchInput($any($event.target).value)"
-      />
+      ></textarea>
     </label>
   </div>
 

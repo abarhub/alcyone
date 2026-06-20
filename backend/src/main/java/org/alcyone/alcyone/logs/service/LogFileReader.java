@@ -44,7 +44,8 @@ public class LogFileReader {
         }
 
         LogParser parser = parserFactory.create(source);
-        String needle = query.hasSearch() ? query.search().toLowerCase(Locale.ROOT) : null;
+        // Critères de recherche (une ligne = un critere) ; une entree doit tous les contenir.
+        List<String> needles = query.searchTerms();
 
         long from = query.offset();
         long to = from + query.size();
@@ -63,7 +64,7 @@ public class LogFileReader {
                 lineNumber++;
                 if (!current.isEmpty() && parser.startsNewEntry(line)) {
                     matchCount = flush(parser, current, currentStartLine, source.getName(),
-                            needle, from, to, matchCount, pageContent);
+                            needles, from, to, matchCount, pageContent);
                     current.clear();
                     currentStartLine = lineNumber;
                 } else if (current.isEmpty()) {
@@ -74,7 +75,7 @@ public class LogFileReader {
             // Dernière entrée.
             if (!current.isEmpty()) {
                 matchCount = flush(parser, current, currentStartLine, source.getName(),
-                        needle, from, to, matchCount, pageContent);
+                        needles, from, to, matchCount, pageContent);
             }
         } catch (IOException e) {
             throw new LogReadException("Erreur de lecture de la source '" + source.getName() + "'", e);
@@ -90,14 +91,28 @@ public class LogFileReader {
      * @return le nouveau nombre d'entrées correspondant au filtre
      */
     private long flush(LogParser parser, List<String> lines, long startLine, String source,
-                       String needle, long from, long to, long matchCount, List<LogEntry> pageContent) {
+                       List<String> needles, long from, long to, long matchCount, List<LogEntry> pageContent) {
         LogEntry entry = parser.parse(lines, startLine, source);
-        if (needle != null && !entry.raw().toLowerCase(Locale.ROOT).contains(needle)) {
+        if (!matches(entry.raw(), needles)) {
             return matchCount;
         }
         if (matchCount >= from && matchCount < to) {
             pageContent.add(entry);
         }
         return matchCount + 1;
+    }
+
+    /** @return true si {@code raw} contient tous les critères (ET, insensible à la casse). */
+    private static boolean matches(String raw, List<String> needles) {
+        if (needles.isEmpty()) {
+            return true;
+        }
+        String rawLower = raw.toLowerCase(Locale.ROOT);
+        for (String needle : needles) {
+            if (!rawLower.contains(needle)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
