@@ -28,6 +28,12 @@
 		<spring-modulith.version>2.1.0</spring-modulith.version>
 	</properties>
 	<dependencies>
+		<!-- Build Angular empaquete (sert le frontend depuis le jar du backend). -->
+		<dependency>
+			<groupId>org.alcyone</groupId>
+			<artifactId>alcyone-frontend</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-h2console</artifactId>

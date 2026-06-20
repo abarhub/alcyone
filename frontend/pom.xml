@@ -29,6 +29,22 @@
 	
 
 	<build>
+		<!-- Le build Angular (genere en phase generate-resources) est copie dans le jar
+		     sous META-INF/resources : Spring Boot sert automatiquement ce contenu statique. -->
+		<resources>
+			<resource>
+				<directory>dist/alcyone/browser</directory>
+				<targetPath>META-INF/resources</targetPath>
+			</resource>
+			<!-- SBOM CycloneDX des dependances npm, embarque dans le jar (non expose via le web). -->
+			<resource>
+				<directory>dist</directory>
+				<includes>
+					<include>npm.cdx.json</include>
+				</includes>
+				<targetPath>META-INF/sbom</targetPath>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
                 <groupId>com.github.eirslett</groupId>
@@ -65,6 +81,17 @@
                         <phase>generate-resources</phase>
                         <configuration>
                             <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>npm-sbom</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>run sbom</arguments>
                         </configuration>
                     </execution>
 
