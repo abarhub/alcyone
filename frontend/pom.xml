@@ -29,6 +29,14 @@
 	
 
 	<build>
+		<!-- Le build Angular (genere en phase generate-resources) est copie dans le jar
+		     sous META-INF/resources : Spring Boot sert automatiquement ce contenu statique. -->
+		<resources>
+			<resource>
+				<directory>dist/alcyone/browser</directory>
+				<targetPath>META-INF/resources</targetPath>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
                 <groupId>com.github.eirslett</groupId>

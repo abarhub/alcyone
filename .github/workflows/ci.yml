@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  backend:
-    name: Backend (tests)
+  build:
+    name: Build & backend tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,11 +20,13 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Run backend tests
-        run: mvn -B -ntp -pl backend test
+      # Construit tout le reacteur : jar Angular + jar fat backend, et lance les tests backend.
+      # (frontend-maven-plugin telecharge Node lui-meme pour le build Angular.)
+      - name: Build & test
+        run: mvn -B -ntp clean package
 
   frontend:
-    name: Frontend (tests + build)
+    name: Frontend unit tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -44,6 +46,3 @@ jobs:
 
       - name: Run unit tests
         run: npm test -- --no-watch
-
-      - name: Build
-        run: npm run build
