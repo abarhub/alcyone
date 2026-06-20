@@ -1,0 +1,90 @@
+<section class="logs">
+  <!-- Barre de recherche -->
+  <div class="toolbar">
+    <label class="field">
+      <span class="field__label">Source</span>
+      <select
+        class="field__control"
+        [value]="selectedSource()"
+        (change)="onSourceChange($any($event.target).value)"
+      >
+        @for (s of sources(); track s.name) {
+          <option [value]="s.name">{{ s.name }} ({{ s.format }})</option>
+        }
+      </select>
+    </label>
+
+    <label class="field field--grow">
+      <span class="field__label">Recherche</span>
+      <input
+        type="search"
+        class="field__control"
+        placeholder="Filtrer les logs (texte contenu)…"
+        [value]="search()"
+        (input)="onSearchInput($any($event.target).value)"
+      />
+    </label>
+  </div>
+
+  <!-- États -->
+  @if (error(); as err) {
+    <p class="status status--error" role="alert">{{ err }}</p>
+  }
+
+  @if (result(); as page) {
+    <p class="status">
+      {{ page.totalElements }} entrée(s)
+      @if (search()) { correspondant à « {{ search() }} » }
+    </p>
+
+    <!-- Liste -->
+    <div class="table" role="table" aria-label="Entrées de logs">
+      <div class="row row--head" role="row">
+        <span class="cell cell--date" role="columnheader">Date</span>
+        <span class="cell cell--level" role="columnheader">Niveau</span>
+        <span class="cell cell--message" role="columnheader">Message</span>
+      </div>
+
+      @for (entry of page.content; track entry.lineNumber) {
+        <div class="row" role="row">
+          <span class="cell cell--date" role="cell">{{ entry.timestamp ?? '—' }}</span>
+          <span class="cell cell--level" role="cell">
+            @if (entry.level) {
+              <span [class]="levelClass(entry.level)">{{ entry.level }}</span>
+            }
+          </span>
+          <span class="cell cell--message" role="cell">
+            <button
+              type="button"
+              class="message__toggle"
+              [attr.aria-expanded]="isExpanded(entry)"
+              (click)="toggle(entry)"
+            >
+              <span class="message__text">{{ entry.message }}</span>
+            </button>
+            @if (isExpanded(entry)) {
+              <pre class="message__raw">{{ entry.raw }}</pre>
+            }
+          </span>
+        </div>
+      } @empty {
+        <div class="row row--empty" role="row">
+          <span class="cell" role="cell">Aucune entrée.</span>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <button type="button" (click)="prevPage()" [disabled]="!canPrev() || loading()">
+        ◄ Précédent
+      </button>
+      <span class="pagination__info">page {{ displayPage() }} / {{ page.totalPages }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="!canNext() || loading()">
+        Suivant ►
+      </button>
+    </div>
+  } @else if (loading()) {
+    <p class="status">Chargement…</p>
+  }
+</section>

@@ -1,0 +1,30 @@
+2026-06-20 08:00:01.123 INFO  [main] o.a.a.AlcyoneApplication - Starting Alcyone v0.0.1
+2026-06-20 08:00:01.456 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer - Tomcat started on port 8080
+2026-06-20 08:00:02.001 INFO  [main] o.a.a.AlcyoneApplication - Started Alcyone in 2.314 seconds
+2026-06-20 08:01:15.220 DEBUG [http-nio-8080-exec-1] o.a.a.logs.web.LogController - GET /api/logs source=app-text page=0
+2026-06-20 08:01:15.305 INFO  [http-nio-8080-exec-1] o.a.a.logs.service.LogService - Lecture de 100 entrees pour la source app-text
+2026-06-20 08:02:30.110 WARN  [pool-2-thread-1] o.a.a.batch.ImportJob - Lenteur detectee sur la connexion a la base (1200ms)
+2026-06-20 08:02:45.870 INFO  [pool-2-thread-1] o.a.a.batch.ImportJob - Import termine : 4521 lignes traitees
+2026-06-20 08:05:12.330 ERROR [http-nio-8080-exec-3] o.a.a.logs.service.LogFileReader - Echec de lecture du fichier de logs
+java.nio.file.NoSuchFileException: /var/log/missing.log
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at org.alcyone.alcyone.logs.service.LogFileReader.read(LogFileReader.java:48)
+	at org.alcyone.alcyone.logs.service.LogService.read(LogService.java:39)
+2026-06-20 08:06:00.000 INFO  [http-nio-8080-exec-4] o.a.a.logs.web.LogController - GET /api/logs/sources
+2026-06-20 08:07:22.540 DEBUG [scheduler-1] o.a.a.health.HealthCheck - Ping base de donnees OK (12ms)
+2026-06-20 08:09:41.props WARN  [http-nio-8080-exec-5] o.a.a.security.RateLimiter - Trop de requetes depuis 192.168.1.42, throttling active
+2026-06-20 08:10:05.118 INFO  [http-nio-8080-exec-6] o.a.a.logs.web.LogController - Recherche q=timeout sur app-text
+2026-06-20 08:12:33.900 ERROR [pool-2-thread-2] o.a.a.batch.ExportJob - Connection timeout on pool-2 after 30000ms
+2026-06-20 08:12:34.010 INFO  [pool-2-thread-2] o.a.a.batch.ExportJob - Nouvelle tentative 1/3
+2026-06-20 08:12:36.220 INFO  [pool-2-thread-2] o.a.a.batch.ExportJob - Nouvelle tentative 2/3
+2026-06-20 08:12:40.450 INFO  [pool-2-thread-2] o.a.a.batch.ExportJob - Export reussi apres 3 tentatives
+2026-06-20 08:15:00.777 DEBUG [http-nio-8080-exec-7] o.a.a.logs.service.LogFileReader - Pagination from=0 to=100 matchCount=58
+2026-06-20 08:18:12.345 INFO  [http-nio-8080-exec-8] o.a.a.user.UserService - Connexion utilisateur 'alice'
+2026-06-20 08:18:55.901 WARN  [http-nio-8080-exec-9] o.a.a.user.UserService - Echec de connexion pour 'bob' : mot de passe invalide
+2026-06-20 08:20:33.220 INFO  [scheduler-1] o.a.a.health.HealthCheck - Espace disque OK (74% libre)
+2026-06-20 08:22:10.005 ERROR [http-nio-8080-exec-2] o.a.a.logs.web.LogController - Source de logs inconnue : 'foo'
+2026-06-20 08:25:48.660 INFO  [main] o.a.a.AlcyoneApplication - Rechargement de la configuration termine
+2026-06-20 08:30:01.000 DEBUG [scheduler-1] o.a.a.health.HealthCheck - Ping base de donnees OK (9ms)
+2026-06-20 08:33:27.412 WARN  [pool-2-thread-3] o.a.a.batch.ImportJob - Fichier source vide, import ignore
+2026-06-20 08:40:19.730 INFO  [http-nio-8080-exec-1] o.a.a.user.UserService - Deconnexion utilisateur 'alice'
