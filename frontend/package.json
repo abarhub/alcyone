@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "sbom": "cyclonedx-npm --output-format JSON --output-file dist/npm.cdx.json"
+    "sbom": "cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file dist/npm.cdx.json"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

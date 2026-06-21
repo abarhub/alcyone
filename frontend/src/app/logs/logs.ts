@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { LogEntry, LogPage, LogSource } from './log.model';
@@ -118,10 +119,17 @@ export class Logs implements OnInit {
         this.result.set(page);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Erreur lors du chargement des logs.');
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.toErrorMessage(err));
+        this.result.set(null);
         this.loading.set(false);
       },
     });
+  }
+
+  /** Remonte le message d'erreur du backend (ProblemDetail.detail), ex. erreur de syntaxe de requête. */
+  private toErrorMessage(err: HttpErrorResponse): string {
+    const detail = err.error?.detail;
+    return typeof detail === 'string' ? detail : 'Erreur lors du chargement des logs.';
   }
 }

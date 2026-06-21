@@ -2,7 +2,8 @@ package org.alcyone.alcyone.logs.service;
 
 import org.alcyone.alcyone.logs.config.LogProperties;
 import org.alcyone.alcyone.logs.domain.LogPage;
-import org.alcyone.alcyone.logs.domain.LogQuery;
+import org.alcyone.alcyone.logs.query.Query;
+import org.alcyone.alcyone.logs.query.QueryParser;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,7 +31,8 @@ public class LogService {
     /**
      * Lit une page de logs d'une source, en normalisant et bornant les paramètres de pagination.
      *
-     * @throws LogReadException si la source est inconnue ou le fichier illisible
+     * @throws LogReadException                                        si la source est inconnue ou le fichier illisible
+     * @throws org.alcyone.alcyone.logs.query.QueryParseException si la requête est syntaxiquement invalide
      */
     public LogPage read(String sourceName, String search, Integer page, Integer size) {
         LogProperties.Source source = findSource(sourceName);
@@ -39,7 +41,8 @@ public class LogService {
         int safeSize = (size == null || size <= 0) ? properties.getDefaultPageSize() : size;
         safeSize = Math.min(safeSize, properties.getMaxPageSize());
 
-        return reader.read(source, new LogQuery(sourceName, search, safePage, safeSize));
+        Query query = QueryParser.parse(search);
+        return reader.read(source, query, safePage, safeSize);
     }
 
     private LogProperties.Source findSource(String name) {

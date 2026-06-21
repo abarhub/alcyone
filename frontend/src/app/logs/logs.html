@@ -19,10 +19,13 @@
       <textarea
         class="field__control field__control--area"
         rows="3"
-        placeholder="Filtrer les logs — un critère par ligne (tous doivent correspondre)…"
+        placeholder="ex. erreur (titi OR tutu) | filter .nb > 15 | select .a, .b.c"
         [value]="search()"
         (input)="onSearchInput($any($event.target).value)"
       ></textarea>
+      <span class="field__hint">
+        Mots = contient · AND / OR / NOT · ( ) · | filter .champ &gt; n · | select .a, .b.c (JSON)
+      </span>
     </label>
   </div>
 
