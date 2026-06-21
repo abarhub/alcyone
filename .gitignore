@@ -20,5 +20,6 @@ buildNumber.properties
 node/
 node_modules/
 .idea/
+data/
 
 

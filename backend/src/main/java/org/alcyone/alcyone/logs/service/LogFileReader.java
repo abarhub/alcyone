@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,7 +61,13 @@ public class LogFileReader {
         long currentStartLine = 1;
         long lineNumber = 0;
 
-        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+        CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPLACE)
+                .onUnmappableCharacter(CodingErrorAction.REPLACE)
+                .replaceWith("?");
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(path), decoder))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
