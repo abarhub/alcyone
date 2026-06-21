@@ -13,12 +13,14 @@ import java.util.List;
 public class JsonLogParser implements LogParser {
 
     private final ObjectMapper objectMapper;
+    private final TimestampParser timestampParser;
     private final String timestampField;
     private final String messageField;
     private final String levelField;
 
-    public JsonLogParser(LogProperties.Source source, ObjectMapper objectMapper) {
+    public JsonLogParser(LogProperties.Source source, ObjectMapper objectMapper, TimestampParser timestampParser) {
         this.objectMapper = objectMapper;
+        this.timestampParser = timestampParser;
         this.timestampField = source.getTimestampField();
         this.messageField = source.getMessageField();
         this.levelField = source.getLevelField();
@@ -42,10 +44,11 @@ public class JsonLogParser implements LogParser {
             if (message == null) {
                 message = raw;
             }
-            return new LogEntry(timestamp, level, message, raw, source, startLine);
+            return new LogEntry(timestamp, timestampParser.toEpochMillis(timestamp),
+                    level, message, raw, source, startLine);
         } catch (Exception e) {
             // Ligne JSON invalide : on l'expose en l'état plutôt que d'échouer.
-            return new LogEntry(null, null, raw, raw, source, startLine);
+            return new LogEntry(null, null, null, raw, raw, source, startLine);
         }
     }
 

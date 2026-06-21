@@ -122,7 +122,15 @@ garder que celles dont le champ `.nb` est supérieur à 15, puis n'afficher que 
 
 ---
 
-## 4. Sources au format texte
+## 4. Filtrer par date
+
+Le filtrage par **période** se fait via les sélecteurs début/fin de l'interface (et non dans le
+langage de requête). Ils s'appliquent côté backend sur l'horodatage parsé de chaque entrée, en
+plus de la requête. Une entrée sans horodatage parsable est exclue dès qu'une borne est posée.
+
+---
+
+## 5. Sources au format texte
 
 Les logs texte n'ont pas de champs structurés. Sur ce type de source :
 
@@ -133,7 +141,7 @@ Les logs texte n'ont pas de champs structurés. Sur ce type de source :
 
 ---
 
-## 5. Erreurs
+## 6. Erreurs
 
 Une requête syntaxiquement invalide renvoie une erreur **HTTP 400** dont le message (avec la
 position fautive) s'affiche sous la barre de recherche, par exemple :
@@ -144,7 +152,7 @@ Valeur attendue après l'opérateur (position 14)
 
 ---
 
-## 6. Grammaire (référence)
+## 7. Grammaire (référence)
 
 ```
 pipeline   := boolExpr? ( '|' command )*

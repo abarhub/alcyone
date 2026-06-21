@@ -10,6 +10,7 @@ export interface LogSource {
 /** Une entrée de log normalisée. */
 export interface LogEntry {
   timestamp: string | null;
+  epochMillis: number | null;
   level: string | null;
   message: string;
   raw: string;

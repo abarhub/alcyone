@@ -46,6 +46,15 @@ public class LogProperties {
         /** Format du fichier. */
         private LogFormat format = LogFormat.TEXT;
 
+        /**
+         * Motif de parsing de l'horodatage (syntaxe {@link java.time.format.DateTimeFormatter}).
+         * Optionnel : si absent, un parsing souple est tenté (ISO, décalage, ou date-heure locale).
+         */
+        private String timestampFormat;
+
+        /** Fuseau appliqué aux horodatages sans fuseau (défaut UTC). */
+        private String timestampZone = "UTC";
+
         // --- Spécifique TEXT ---------------------------------------------------
 
         /**

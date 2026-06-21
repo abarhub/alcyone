@@ -16,14 +16,27 @@ export class LogService {
     return this.http.get<LogSource[]>(`${this.baseUrl}/sources`);
   }
 
-  /** Page de logs d'une source, avec recherche texte optionnelle. */
-  getLogs(source: string, search: string, page: number, size: number): Observable<LogPage> {
+  /** Page de logs d'une source, avec requête et plage de dates optionnelles. */
+  getLogs(
+    source: string,
+    search: string,
+    from: string,
+    to: string,
+    page: number,
+    size: number,
+  ): Observable<LogPage> {
     let params = new HttpParams()
       .set('source', source)
       .set('page', page)
       .set('size', size);
     if (search.trim()) {
       params = params.set('q', search.trim());
+    }
+    if (from) {
+      params = params.set('from', from);
+    }
+    if (to) {
+      params = params.set('to', to);
     }
     return this.http.get<LogPage>(this.baseUrl, { params });
   }

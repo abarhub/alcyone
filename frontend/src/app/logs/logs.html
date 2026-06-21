@@ -27,6 +27,27 @@
         Mots = contient · AND / OR / NOT · ( ) · | filter .champ &gt; n · | select .a, .b.c (JSON)
       </span>
     </label>
+
+    <div class="field">
+      <span class="field__label">Période</span>
+      <div class="field__dates">
+        <input
+          type="datetime-local"
+          class="field__control"
+          aria-label="Date de début"
+          [value]="from()"
+          (change)="onFromChange($any($event.target).value)"
+        />
+        <span class="field__dash" aria-hidden="true">→</span>
+        <input
+          type="datetime-local"
+          class="field__control"
+          aria-label="Date de fin"
+          [value]="to()"
+          (change)="onToChange($any($event.target).value)"
+        />
+      </div>
+    </div>
   </div>
 
   <!-- États -->

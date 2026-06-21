@@ -41,7 +41,8 @@ public class LogFileReader {
         this.evaluator = evaluator;
     }
 
-    public LogPage read(LogProperties.Source source, Query query, int page, int size) {
+    public LogPage read(LogProperties.Source source, Query query, Long fromMillis, Long toMillis,
+                        int page, int size) {
         Path path = Path.of(source.getPath());
         if (!Files.exists(path)) {
             throw new LogReadException("Fichier introuvable pour la source '" + source.getName() + "' : " + path);
@@ -77,7 +78,7 @@ public class LogFileReader {
                 lineNumber++;
                 if (!current.isEmpty() && parser.startsNewEntry(line)) {
                     matchCount = flush(parser, current, currentStartLine, source.getName(),
-                            query, parseJson, from, to, matchCount, pageContent);
+                            query, parseJson, fromMillis, toMillis, from, to, matchCount, pageContent);
                     current.clear();
                     currentStartLine = lineNumber;
                 } else if (current.isEmpty()) {
@@ -88,7 +89,7 @@ public class LogFileReader {
             // Dernière entrée.
             if (!current.isEmpty()) {
                 matchCount = flush(parser, current, currentStartLine, source.getName(),
-                        query, parseJson, from, to, matchCount, pageContent);
+                        query, parseJson, fromMillis, toMillis, from, to, matchCount, pageContent);
             }
         } catch (IOException e) {
             throw new LogReadException("Erreur de lecture de la source '" + source.getName() + "'", e);
@@ -104,9 +105,12 @@ public class LogFileReader {
      * @return le nouveau nombre d'entrées correspondant à la requête
      */
     private long flush(LogParser parser, List<String> lines, long startLine, String source,
-                       Query query, boolean parseJson, long from, long to, long matchCount,
-                       List<LogEntry> pageContent) {
+                       Query query, boolean parseJson, Long fromMillis, Long toMillis,
+                       long from, long to, long matchCount, List<LogEntry> pageContent) {
         LogEntry entry = parser.parse(lines, startLine, source);
+        if (!inRange(entry, fromMillis, toMillis)) {
+            return matchCount;
+        }
         JsonNode node = parseJson ? evaluator.parse(entry.raw()) : null;
         if (!evaluator.matchesAll(query, entry.raw(), node)) {
             return matchCount;
@@ -117,13 +121,28 @@ public class LogFileReader {
         return matchCount + 1;
     }
 
+    /** @return true si l'entrée est dans la plage [fromMillis, toMillis). Une entrée sans date est exclue si une borne est posée. */
+    private static boolean inRange(LogEntry entry, Long fromMillis, Long toMillis) {
+        if (fromMillis == null && toMillis == null) {
+            return true;
+        }
+        Long epoch = entry.epochMillis();
+        if (epoch == null) {
+            return false;
+        }
+        if (fromMillis != null && epoch < fromMillis) {
+            return false;
+        }
+        return toMillis == null || epoch < toMillis;
+    }
+
     /** Applique la projection {@code select} : remplace le message par le JSON projeté, le cas échéant. */
     private LogEntry project(LogEntry entry, Query query, JsonNode node) {
         String projected = evaluator.project(query, node);
         if (projected == null) {
             return entry;
         }
-        return new LogEntry(entry.timestamp(), entry.level(), projected, entry.raw(),
-                entry.source(), entry.lineNumber());
+        return new LogEntry(entry.timestamp(), entry.epochMillis(), entry.level(), projected,
+                entry.raw(), entry.source(), entry.lineNumber());
     }
 }

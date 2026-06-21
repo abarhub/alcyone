@@ -20,6 +20,8 @@ export class Logs implements OnInit {
   protected readonly sources = signal<LogSource[]>([]);
   protected readonly selectedSource = signal('');
   protected readonly search = signal('');
+  protected readonly from = signal('');
+  protected readonly to = signal('');
   protected readonly page = signal(0);
   protected readonly size = signal(100);
 
@@ -76,6 +78,18 @@ export class Logs implements OnInit {
     this.searchInput$.next(value);
   }
 
+  protected onFromChange(value: string): void {
+    this.from.set(value);
+    this.page.set(0);
+    this.fetch();
+  }
+
+  protected onToChange(value: string): void {
+    this.to.set(value);
+    this.page.set(0);
+    this.fetch();
+  }
+
   protected prevPage(): void {
     if (this.canPrev()) {
       this.page.update((p) => p - 1);
@@ -114,7 +128,9 @@ export class Logs implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.expanded.set(new Set());
-    this.logService.getLogs(source, this.search(), this.page(), this.size()).subscribe({
+    this.logService
+      .getLogs(source, this.search(), this.from(), this.to(), this.page(), this.size())
+      .subscribe({
       next: (page) => {
         this.result.set(page);
         this.loading.set(false);
