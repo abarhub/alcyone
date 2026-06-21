@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { LogEntry, LogPage, LogSource } from './log.model';
+import { Histogram, LogEntry, LogPage, LogSource } from './log.model';
 import { LogService } from './log.service';
 
 /**
@@ -26,8 +26,41 @@ export class Logs implements OnInit {
   protected readonly size = signal(100);
 
   protected readonly result = signal<LogPage | null>(null);
+  protected readonly histogram = signal<Histogram | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  /** Géométrie du graphique en barres (unités SVG), dérivée de l'histogramme. */
+  protected readonly chart = computed(() => {
+    const h = this.histogram();
+    if (!h || h.buckets.length === 0) {
+      return null;
+    }
+    const width = 1000;
+    const height = 80;
+    const barWidth = width / h.buckets.length;
+    const max = Math.max(1, ...h.buckets.map((b) => b.count));
+    const bars = h.buckets.map((b, i) => {
+      const barHeight = (b.count / max) * height;
+      return {
+        x: i * barWidth,
+        y: height - barHeight,
+        w: Math.max(barWidth - 1, 0.5),
+        h: barHeight,
+        count: b.count,
+        label: this.formatInstant(b.startMillis),
+      };
+    });
+    return {
+      width,
+      height,
+      bars,
+      max,
+      total: h.buckets.reduce((sum, b) => sum + b.count, 0),
+      first: this.formatInstant(h.buckets[0].startMillis),
+      last: this.formatInstant(h.buckets[h.buckets.length - 1].startMillis),
+    };
+  });
 
   /** Numéros de ligne des entrées dépliées (affichage de la ligne brute). */
   private readonly expanded = signal<Set<number>>(new Set());
@@ -131,15 +164,19 @@ export class Logs implements OnInit {
     this.logService
       .getLogs(source, this.search(), this.from(), this.to(), this.page(), this.size())
       .subscribe({
-      next: (page) => {
-        this.result.set(page);
-        this.loading.set(false);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.error.set(this.toErrorMessage(err));
-        this.result.set(null);
-        this.loading.set(false);
-      },
+        next: (page) => {
+          this.result.set(page);
+          this.loading.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.error.set(this.toErrorMessage(err));
+          this.result.set(null);
+          this.loading.set(false);
+        },
+      });
+    this.logService.getHistogram(source, this.search(), this.from(), this.to()).subscribe({
+      next: (histogram) => this.histogram.set(histogram),
+      error: () => this.histogram.set(null),
     });
   }
 
@@ -147,5 +184,10 @@ export class Logs implements OnInit {
   private toErrorMessage(err: HttpErrorResponse): string {
     const detail = err.error?.detail;
     return typeof detail === 'string' ? detail : 'Erreur lors du chargement des logs.';
+  }
+
+  /** Formate un epoch millis en "MM-dd HH:mm:ss" (UTC), cohérent avec l'affichage des dates. */
+  private formatInstant(millis: number): string {
+    return new Date(millis).toISOString().slice(5, 19).replace('T', ' ');
   }
 }

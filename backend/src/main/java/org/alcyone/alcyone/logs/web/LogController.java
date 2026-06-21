@@ -1,5 +1,6 @@
 package org.alcyone.alcyone.logs.web;
 
+import org.alcyone.alcyone.logs.domain.Histogram;
 import org.alcyone.alcyone.logs.domain.LogPage;
 import org.alcyone.alcyone.logs.service.LogService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,5 +48,22 @@ public class LogController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
         return logService.read(source, q, from, to, page, size);
+    }
+
+    /**
+     * Histogramme temporel (nombre d'entrées par tranche) pour la même requête et plage de dates.
+     *
+     * @param source nom de la source
+     * @param q      requête (recherche + pipeline filter/select), optionnelle
+     * @param from   borne basse de date (incluse), date-heure ISO, optionnelle
+     * @param to     borne haute de date (exclue), date-heure ISO, optionnelle
+     */
+    @GetMapping("/api/logs/histogram")
+    public Histogram histogram(
+            @RequestParam String source,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+        return logService.histogram(source, q, from, to);
     }
 }

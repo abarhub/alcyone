@@ -18,6 +18,18 @@ export interface LogEntry {
   lineNumber: number;
 }
 
+/** Une tranche de l'histogramme temporel. */
+export interface HistogramBucket {
+  startMillis: number;
+  count: number;
+}
+
+/** Histogramme temporel : nombre d'entrées par tranche de largeur fixe. */
+export interface Histogram {
+  intervalMillis: number;
+  buckets: HistogramBucket[];
+}
+
 /** Une page d'entrées, avec la pagination calculée par le backend. */
 export interface LogPage {
   content: LogEntry[];

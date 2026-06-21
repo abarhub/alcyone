@@ -9,6 +9,8 @@ pour les consulter façon Splunk — une barre de recherche et une liste paginé
 - Lecture de fichiers de logs **texte** ou **JSON Lines** (NDJSON), définis en configuration.
 - **Pagination et recherche côté backend** (lecture en streaming, adaptée aux gros fichiers).
 - **Filtre par période** : sélecteurs début/fin, appliqués côté backend sur l'horodatage parsé.
+- **Histogramme temporel** : nombre de messages par tranche (largeur automatique), reflétant la
+  recherche et la période courantes.
 - Regroupement des lignes de continuation (ex. stack traces) en une seule entrée.
 - **Langage de requête** type Splunk : recherche booléenne (`AND`/`OR`/`NOT`, parenthèses) et
   pipeline `| filter` / `| select` sur les champs JSON. Voir
