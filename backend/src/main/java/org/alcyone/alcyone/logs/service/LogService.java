@@ -1,6 +1,7 @@
 package org.alcyone.alcyone.logs.service;
 
 import org.alcyone.alcyone.logs.config.LogProperties;
+import org.alcyone.alcyone.logs.domain.Histogram;
 import org.alcyone.alcyone.logs.domain.LogPage;
 import org.alcyone.alcyone.logs.parser.TimestampParser;
 import org.alcyone.alcyone.logs.query.Query;
@@ -51,6 +52,22 @@ public class LogService {
         Long toMillis = timestampParser.toEpochMillis(to);
 
         return reader.read(source, query, fromMillis, toMillis, safePage, safeSize);
+    }
+
+    /**
+     * Calcule l'histogramme temporel (nombre d'entrées par tranche) pour une source, en appliquant
+     * la même requête et plage de dates que {@link #read}.
+     */
+    public Histogram histogram(String sourceName, String search, String from, String to) {
+        LogProperties.Source source = findSource(sourceName);
+        Query query = QueryParser.parse(search);
+
+        TimestampParser timestampParser =
+                new TimestampParser(source.getTimestampFormat(), source.getTimestampZone());
+        Long fromMillis = timestampParser.toEpochMillis(from);
+        Long toMillis = timestampParser.toEpochMillis(to);
+
+        return HistogramBuilder.build(reader.collectEpochs(source, query, fromMillis, toMillis));
     }
 
     private LogProperties.Source findSource(String name) {

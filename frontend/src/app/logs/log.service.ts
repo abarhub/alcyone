@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { LogPage, LogSource } from './log.model';
+import { Histogram, LogPage, LogSource } from './log.model';
 
 /**
  * Accès à l'API de logs du backend.
@@ -39,5 +39,20 @@ export class LogService {
       params = params.set('to', to);
     }
     return this.http.get<LogPage>(this.baseUrl, { params });
+  }
+
+  /** Histogramme temporel pour la même requête et plage de dates. */
+  getHistogram(source: string, search: string, from: string, to: string): Observable<Histogram> {
+    let params = new HttpParams().set('source', source);
+    if (search.trim()) {
+      params = params.set('q', search.trim());
+    }
+    if (from) {
+      params = params.set('from', from);
+    }
+    if (to) {
+      params = params.set('to', to);
+    }
+    return this.http.get<Histogram>(`${this.baseUrl}/histogram`, { params });
   }
 }

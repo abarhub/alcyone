@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * Lit un fichier de logs en streaming (jamais tout le fichier en mémoire), regroupe les lignes
- * en entrées, applique la requête (filtre + projection select) et ne conserve que la page demandée.
+ * en entrées et applique la requête (plage de dates + filtre + projection select).
  * <p>
  * Comme les fichiers sont statiques, un balayage complet par requête est acceptable : il permet
  * de connaître le nombre total d'entrées (pour la pagination) tout en ne gardant en mémoire que
@@ -32,6 +32,12 @@ import java.util.List;
  */
 @Component
 public class LogFileReader {
+
+    /** Reçoit chaque entrée correspondant à la requête, avec son nœud JSON parsé si disponible. */
+    @FunctionalInterface
+    private interface MatchHandler {
+        void handle(LogEntry entry, JsonNode node);
+    }
 
     private final LogParserFactory parserFactory;
     private final QueryEvaluator evaluator;
@@ -41,8 +47,40 @@ public class LogFileReader {
         this.evaluator = evaluator;
     }
 
+    /** Lit une page d'entrées correspondant à la requête et à la plage de dates. */
     public LogPage read(LogProperties.Source source, Query query, Long fromMillis, Long toMillis,
                         int page, int size) {
+        long from = (long) page * size;
+        long to = from + size;
+
+        List<LogEntry> pageContent = new ArrayList<>();
+        long[] matchCount = {0};
+
+        scan(source, query, fromMillis, toMillis, (entry, node) -> {
+            long index = matchCount[0]++;
+            if (index >= from && index < to) {
+                pageContent.add(project(entry, query, node));
+            }
+        });
+
+        return LogPage.of(pageContent, source.getName(), page, size, matchCount[0]);
+    }
+
+    /** Collecte les horodatages (epoch millis) des entrées correspondantes, pour l'histogramme. */
+    public List<Long> collectEpochs(LogProperties.Source source, Query query,
+                                    Long fromMillis, Long toMillis) {
+        List<Long> epochs = new ArrayList<>();
+        scan(source, query, fromMillis, toMillis, (entry, node) -> {
+            if (entry.epochMillis() != null) {
+                epochs.add(entry.epochMillis());
+            }
+        });
+        return epochs;
+    }
+
+    /** Balaye le fichier et invoque {@code handler} pour chaque entrée correspondant à la requête. */
+    private void scan(LogProperties.Source source, Query query, Long fromMillis, Long toMillis,
+                      MatchHandler handler) {
         Path path = Path.of(source.getPath());
         if (!Files.exists(path)) {
             throw new LogReadException("Fichier introuvable pour la source '" + source.getName() + "' : " + path);
@@ -54,12 +92,6 @@ public class LogFileReader {
         LogParser parser = parserFactory.create(source);
         // On ne parse le JSON (pour les champs) que si la source est JSON et que la requête en a besoin.
         boolean parseJson = source.getFormat() == LogFormat.JSON && QueryEvaluator.usesFields(query);
-
-        long from = (long) page * size;
-        long to = from + size;
-
-        List<LogEntry> pageContent = new ArrayList<>();
-        long matchCount = 0;
 
         // Accumulateur de l'entrée courante (première ligne + continuations).
         List<String> current = new ArrayList<>();
@@ -77,8 +109,8 @@ public class LogFileReader {
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
                 if (!current.isEmpty() && parser.startsNewEntry(line)) {
-                    matchCount = flush(parser, current, currentStartLine, source.getName(),
-                            query, parseJson, fromMillis, toMillis, from, to, matchCount, pageContent);
+                    handleEntry(parser, current, currentStartLine, source.getName(),
+                            query, parseJson, fromMillis, toMillis, handler);
                     current.clear();
                     currentStartLine = lineNumber;
                 } else if (current.isEmpty()) {
@@ -88,37 +120,27 @@ public class LogFileReader {
             }
             // Dernière entrée.
             if (!current.isEmpty()) {
-                matchCount = flush(parser, current, currentStartLine, source.getName(),
-                        query, parseJson, fromMillis, toMillis, from, to, matchCount, pageContent);
+                handleEntry(parser, current, currentStartLine, source.getName(),
+                        query, parseJson, fromMillis, toMillis, handler);
             }
         } catch (IOException e) {
             throw new LogReadException("Erreur de lecture de la source '" + source.getName() + "'", e);
         }
-
-        return LogPage.of(pageContent, source.getName(), page, size, matchCount);
     }
 
-    /**
-     * Construit l'entrée, applique la requête et, si elle correspond, incrémente le compteur et
-     * l'ajoute à la page (avec projection select) si elle tombe dans la fenêtre [from, to).
-     *
-     * @return le nouveau nombre d'entrées correspondant à la requête
-     */
-    private long flush(LogParser parser, List<String> lines, long startLine, String source,
-                       Query query, boolean parseJson, Long fromMillis, Long toMillis,
-                       long from, long to, long matchCount, List<LogEntry> pageContent) {
+    /** Construit l'entrée et, si elle satisfait plage de dates et requête, la transmet au handler. */
+    private void handleEntry(LogParser parser, List<String> lines, long startLine, String source,
+                             Query query, boolean parseJson, Long fromMillis, Long toMillis,
+                             MatchHandler handler) {
         LogEntry entry = parser.parse(lines, startLine, source);
         if (!inRange(entry, fromMillis, toMillis)) {
-            return matchCount;
+            return;
         }
         JsonNode node = parseJson ? evaluator.parse(entry.raw()) : null;
         if (!evaluator.matchesAll(query, entry.raw(), node)) {
-            return matchCount;
+            return;
         }
-        if (matchCount >= from && matchCount < to) {
-            pageContent.add(project(entry, query, node));
-        }
-        return matchCount + 1;
+        handler.handle(entry, node);
     }
 
     /** @return true si l'entrée est dans la plage [fromMillis, toMillis). Une entrée sans date est exclue si une borne est posée. */
