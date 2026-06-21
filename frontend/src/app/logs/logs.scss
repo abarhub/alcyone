@@ -96,6 +96,8 @@
   display: block;
   width: 100%;
   height: 80px;
+  cursor: crosshair;
+  touch-action: none;
 }
 
 .histogram__bar {
@@ -103,6 +105,34 @@
 
   &:hover {
     fill: #14439e;
+  }
+}
+
+.histogram__selection {
+  fill: color-mix(in srgb, var(--accent) 18%, transparent);
+  stroke: var(--accent);
+  stroke-width: 0.5;
+  pointer-events: none;
+}
+
+.histogram__reset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.5rem;
+
+  &:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
   }
 }
 

@@ -3,6 +3,10 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Histogram, LogEntry, LogPage, LogSource } from './log.model';
 import { LogService } from './log.service';
+import { selectionToRange } from './histogram-selection';
+
+/** Largeur du repère SVG de l'histogramme (unités utilisateur). */
+const CHART_WIDTH = 1000;
 
 /**
  * Écran principal : barre de recherche (façon Splunk) + liste paginée des logs.
@@ -36,7 +40,7 @@ export class Logs implements OnInit {
     if (!h || h.buckets.length === 0) {
       return null;
     }
-    const width = 1000;
+    const width = CHART_WIDTH;
     const height = 80;
     const barWidth = width / h.buckets.length;
     const max = Math.max(1, ...h.buckets.map((b) => b.count));
@@ -61,6 +65,22 @@ export class Logs implements OnInit {
       last: this.formatInstant(h.buckets[h.buckets.length - 1].startMillis),
     };
   });
+
+  /** Sélection en cours sur l'histogramme (coordonnées SVG), pour l'aperçu visuel. */
+  private readonly selection = signal<{ x1: number; x2: number } | null>(null);
+  private dragging = false;
+
+  /** Rectangle de sélection à dessiner pendant le glisser. */
+  protected readonly selectionRect = computed(() => {
+    const s = this.selection();
+    if (!s) {
+      return null;
+    }
+    return { x: Math.min(s.x1, s.x2), width: Math.abs(s.x2 - s.x1) };
+  });
+
+  /** Vrai si une période est active (affiche le bouton de réinitialisation). */
+  protected readonly hasRange = computed(() => this.from() !== '' || this.to() !== '');
 
   /** Numéros de ligne des entrées dépliées (affichage de la ligne brute). */
   private readonly expanded = signal<Set<number>>(new Set());
@@ -121,6 +141,78 @@ export class Logs implements OnInit {
     this.to.set(value);
     this.page.set(0);
     this.fetch();
+  }
+
+  // --- Interaction histogramme (façon Splunk) : clic = une tranche, glisser = une plage ---
+
+  protected onChartDown(event: PointerEvent): void {
+    const svg = event.currentTarget as SVGSVGElement;
+    try {
+      svg.setPointerCapture(event.pointerId);
+    } catch {
+      // pointer non capturable (ex. événement synthétique) : sans gravité
+    }
+    const x = this.svgX(event, svg);
+    this.dragging = true;
+    this.selection.set({ x1: x, x2: x });
+  }
+
+  protected onChartMove(event: PointerEvent): void {
+    if (!this.dragging) {
+      return;
+    }
+    const x = this.svgX(event, event.currentTarget as SVGSVGElement);
+    this.selection.update((s) => (s ? { x1: s.x1, x2: x } : s));
+  }
+
+  protected onChartUp(): void {
+    if (!this.dragging) {
+      return;
+    }
+    this.dragging = false;
+    const s = this.selection();
+    this.selection.set(null);
+    if (s) {
+      this.applySelection(s.x1, s.x2);
+    }
+  }
+
+  /** Réinitialise la période sélectionnée. */
+  protected clearRange(): void {
+    this.from.set('');
+    this.to.set('');
+    this.page.set(0);
+    this.fetch();
+  }
+
+  private svgX(event: PointerEvent, svg: SVGSVGElement): number {
+    const rect = svg.getBoundingClientRect();
+    if (rect.width === 0) {
+      return 0;
+    }
+    const x = ((event.clientX - rect.left) / rect.width) * CHART_WIDTH;
+    return Math.max(0, Math.min(CHART_WIDTH, x));
+  }
+
+  /** Traduit la sélection (coordonnées SVG) en période [from, to) sur les tranches couvertes. */
+  private applySelection(x1: number, x2: number): void {
+    const h = this.histogram();
+    if (!h) {
+      return;
+    }
+    const range = selectionToRange(x1, x2, CHART_WIDTH, h.buckets, h.intervalMillis);
+    if (!range) {
+      return;
+    }
+    this.from.set(this.toInputValue(range.fromMillis));
+    this.to.set(this.toInputValue(range.toMillis));
+    this.page.set(0);
+    this.fetch();
+  }
+
+  /** Convertit un epoch millis en valeur d'input datetime-local (UTC, avec secondes). */
+  private toInputValue(millis: number): string {
+    return new Date(millis).toISOString().slice(0, 19);
   }
 
   protected prevPage(): void {
