@@ -33,6 +33,7 @@
       <div class="field__dates">
         <input
           type="datetime-local"
+          step="1"
           class="field__control"
           aria-label="Date de début"
           [value]="from()"
@@ -41,6 +42,7 @@
         <span class="field__dash" aria-hidden="true">→</span>
         <input
           type="datetime-local"
+          step="1"
           class="field__control"
           aria-label="Date de fin"
           [value]="to()"
@@ -58,17 +60,27 @@
         [attr.viewBox]="'0 0 ' + c.width + ' ' + c.height"
         preserveAspectRatio="none"
         role="img"
-        aria-label="Nombre de messages par tranche de temps"
+        aria-label="Nombre de messages par tranche de temps — cliquer ou glisser pour choisir une période"
+        (pointerdown)="onChartDown($event)"
+        (pointermove)="onChartMove($event)"
+        (pointerup)="onChartUp()"
       >
         @for (bar of c.bars; track bar.x) {
           <rect class="histogram__bar" [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.w" [attr.height]="bar.h">
             <title>{{ bar.label }} — {{ bar.count }}</title>
           </rect>
         }
+        @if (selectionRect(); as sel) {
+          <rect class="histogram__selection" [attr.x]="sel.x" y="0" [attr.width]="sel.width" [attr.height]="c.height"></rect>
+        }
       </svg>
       <div class="histogram__axis">
         <span>{{ c.first }}</span>
-        <span class="histogram__max">max {{ c.max }}/tranche</span>
+        @if (hasRange()) {
+          <button type="button" class="histogram__reset" (click)="clearRange()">✕ réinitialiser la période</button>
+        } @else {
+          <span class="histogram__max">max {{ c.max }}/tranche</span>
+        }
         <span>{{ c.last }}</span>
       </div>
     </div>
