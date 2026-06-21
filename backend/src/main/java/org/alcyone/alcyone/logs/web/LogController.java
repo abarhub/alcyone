@@ -32,7 +32,9 @@ public class LogController {
      * Page de logs d'une source, avec recherche texte optionnelle.
      *
      * @param source nom de la source
-     * @param q      texte recherché (filtre « contient »), optionnel
+     * @param q      requête (recherche + pipeline filter/select), optionnelle
+     * @param from   borne basse de date (incluse), date-heure ISO, optionnelle
+     * @param to     borne haute de date (exclue), date-heure ISO, optionnelle
      * @param page   index de page (0-based), défaut 0
      * @param size   taille de page, défaut = configuration backend
      */
@@ -40,8 +42,10 @@ public class LogController {
     public LogPage logs(
             @RequestParam String source,
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
-        return logService.read(source, q, page, size);
+        return logService.read(source, q, from, to, page, size);
     }
 }

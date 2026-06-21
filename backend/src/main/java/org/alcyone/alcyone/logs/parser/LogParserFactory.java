@@ -17,9 +17,11 @@ public class LogParserFactory {
     }
 
     public LogParser create(LogProperties.Source source) {
+        TimestampParser timestampParser =
+                new TimestampParser(source.getTimestampFormat(), source.getTimestampZone());
         return switch (source.getFormat()) {
-            case TEXT -> new TextLogParser(source);
-            case JSON -> new JsonLogParser(source, objectMapper);
+            case TEXT -> new TextLogParser(source, timestampParser);
+            case JSON -> new JsonLogParser(source, objectMapper, timestampParser);
         };
     }
 }

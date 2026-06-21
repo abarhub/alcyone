@@ -53,6 +53,16 @@
   font-family: "Cascadia Code", "Consolas", monospace;
 }
 
+.field__dates {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.field__dash {
+  color: var(--text-muted);
+}
+
 .field__control {
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--border);

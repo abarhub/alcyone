@@ -14,9 +14,11 @@ import java.util.regex.Pattern;
 public class TextLogParser implements LogParser {
 
     private final Pattern pattern;
+    private final TimestampParser timestampParser;
 
-    public TextLogParser(LogProperties.Source source) {
+    public TextLogParser(LogProperties.Source source, TimestampParser timestampParser) {
         this.pattern = Pattern.compile(source.getLineRegex());
+        this.timestampParser = timestampParser;
     }
 
     @Override
@@ -47,7 +49,8 @@ public class TextLogParser implements LogParser {
             message = raw;
         }
 
-        return new LogEntry(timestamp, level, message, raw, source, startLine);
+        return new LogEntry(timestamp, timestampParser.toEpochMillis(timestamp),
+                level, message, raw, source, startLine);
     }
 
     private static String group(Matcher matcher, String name) {

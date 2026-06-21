@@ -2,6 +2,7 @@ package org.alcyone.alcyone.logs.service;
 
 import org.alcyone.alcyone.logs.config.LogProperties;
 import org.alcyone.alcyone.logs.domain.LogPage;
+import org.alcyone.alcyone.logs.parser.TimestampParser;
 import org.alcyone.alcyone.logs.query.Query;
 import org.alcyone.alcyone.logs.query.QueryParser;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,8 @@ public class LogService {
      * @throws LogReadException                                        si la source est inconnue ou le fichier illisible
      * @throws org.alcyone.alcyone.logs.query.QueryParseException si la requête est syntaxiquement invalide
      */
-    public LogPage read(String sourceName, String search, Integer page, Integer size) {
+    public LogPage read(String sourceName, String search, String from, String to,
+                        Integer page, Integer size) {
         LogProperties.Source source = findSource(sourceName);
 
         int safePage = (page == null || page < 0) ? 0 : page;
@@ -42,7 +44,13 @@ public class LogService {
         safeSize = Math.min(safeSize, properties.getMaxPageSize());
 
         Query query = QueryParser.parse(search);
-        return reader.read(source, query, safePage, safeSize);
+
+        TimestampParser timestampParser =
+                new TimestampParser(source.getTimestampFormat(), source.getTimestampZone());
+        Long fromMillis = timestampParser.toEpochMillis(from);
+        Long toMillis = timestampParser.toEpochMillis(to);
+
+        return reader.read(source, query, fromMillis, toMillis, safePage, safeSize);
     }
 
     private LogProperties.Source findSource(String name) {

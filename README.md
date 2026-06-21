@@ -8,6 +8,7 @@ pour les consulter façon Splunk — une barre de recherche et une liste paginé
 
 - Lecture de fichiers de logs **texte** ou **JSON Lines** (NDJSON), définis en configuration.
 - **Pagination et recherche côté backend** (lecture en streaming, adaptée aux gros fichiers).
+- **Filtre par période** : sélecteurs début/fin, appliqués côté backend sur l'horodatage parsé.
 - Regroupement des lignes de continuation (ex. stack traces) en une seule entrée.
 - **Langage de requête** type Splunk : recherche booléenne (`AND`/`OR`/`NOT`, parenthèses) et
   pipeline `| filter` / `| select` sur les champs JSON. Voir
@@ -64,10 +65,13 @@ alcyone:
         timestamp-field: "@timestamp"
         message-field: message
         level-field: level
+        # Optionnel : parsing de l'horodatage (sinon parsing souple ISO/local, zone UTC)
+        # timestamp-format: "yyyy-MM-dd HH:mm:ss.SSS"
+        # timestamp-zone: "Europe/Paris"
 ```
 
 > Les chemins sont relatifs au répertoire de lancement ; en production, préférez des chemins
-> absolus.
+> absolus. Les horodatages sans fuseau sont interprétés dans `timestamp-zone` (UTC par défaut).
 
 ## Documentation
 
