@@ -47,6 +47,12 @@
   letter-spacing: 0.03em;
 }
 
+.field__hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: "Cascadia Code", "Consolas", monospace;
+}
+
 .field__control {
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--border);
